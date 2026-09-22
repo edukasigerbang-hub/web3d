@@ -7,6 +7,7 @@ import type { Group } from 'three'
 import './App.css'
 
 gsap.registerPlugin(ScrollTrigger)
+const easeInOut = gsap.parseEase('power3.inOut')
 
 const pillars = [
   {
@@ -194,14 +195,15 @@ function EnergyScene({ progress }: { progress: number }) {
     if (!groupRef.current) return
 
     const t = state.clock.getElapsedTime()
-    const transitionZoom = Math.sin(sceneProgress * Math.PI)
+    const boundaryProgress = Math.min(sceneProgress, 1 - sceneProgress) * 2
+    const transitionZoom = 1 - easeInOut(boundaryProgress)
     state.camera.position.z = 6.2 + transitionZoom * 2.2
-    state.camera.position.y = Math.sin(sceneProgress * Math.PI) * 0.18
+    state.camera.position.y = transitionZoom * 0.18
     state.camera.lookAt(0, 0, 0)
-    groupRef.current.rotation.y = sceneIndex * 0.42 + t * 0.08
+    groupRef.current.rotation.y = sceneIndex * 0.42 + easeInOut(sceneProgress) * 0.16 + t * 0.08
     groupRef.current.rotation.x = -0.08 + Math.sin(t * 0.45) * 0.025
     groupRef.current.position.y = Math.sin(t * 0.7) * 0.035
-    groupRef.current.scale.setScalar(0.9 + transitionZoom * 0.11)
+    groupRef.current.scale.setScalar(0.9 + (1 - transitionZoom) * 0.11)
   })
 
   return (
