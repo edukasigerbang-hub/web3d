@@ -195,7 +195,7 @@ function EnergyScene({ progress }: { progress: number }) {
     const boundaryProgress = Math.min(sceneProgress, 1 - sceneProgress) * 2
     const transitionZoom = 1 - easeInOut(boundaryProgress)
     const isCompactViewport = state.size.width < 700
-    const stageOffset = isCompactViewport ? 0.72 : 2.25
+    const stageOffset = isCompactViewport ? 0.85 : 3.25
     const cameraTarget = isCompactViewport ? 0.2 : 0.75
     state.camera.position.x = 4.8 + transitionZoom * 0.8
     state.camera.position.y = 3.1 + transitionZoom * 0.45
