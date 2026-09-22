@@ -1,13 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Float } from '@react-three/drei'
+import { Float, useGLTF } from '@react-three/drei'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Box3, Vector3 } from 'three'
 import type { Group } from 'three'
 import './App.css'
 
 gsap.registerPlugin(ScrollTrigger)
 const easeInOut = gsap.parseEase('power3.inOut')
+const heroModelPath = `${import.meta.env.BASE_URL}ballasted_panel_claw.glb`
 
 const pillars = [
   {
@@ -55,39 +57,34 @@ const scenes = [
 ]
 
 function IntroModel() {
+  const { scene } = useGLTF(heroModelPath)
+  const modelRef = useRef<Group | null>(null)
+
+  useLayoutEffect(() => {
+    if (!modelRef.current) return
+
+    const bounds = new Box3().setFromObject(modelRef.current)
+    const size = bounds.getSize(new Vector3())
+    const center = bounds.getCenter(new Vector3())
+    const largestDimension = Math.max(size.x, size.y, size.z)
+    const normalizedScale = largestDimension > 0 ? 3.2 / largestDimension : 1
+
+    modelRef.current.scale.setScalar(normalizedScale)
+    modelRef.current.position.set(
+      -center.x * normalizedScale,
+      -center.y * normalizedScale,
+      -center.z * normalizedScale,
+    )
+  }, [scene])
+
   return (
-    <group>
-      <mesh position={[0, -1.25, 0]}>
-        <boxGeometry args={[3.5, 0.22, 2.35]} />
-        <meshStandardMaterial color="#151b1e" metalness={0.82} roughness={0.28} />
-      </mesh>
-      <mesh position={[0, -1.08, 0]}>
-        <boxGeometry args={[2.45, 0.14, 1.55]} />
-        <meshStandardMaterial color="#c2a56e" metalness={0.72} roughness={0.25} />
-      </mesh>
-      <mesh position={[0, 0.05, 0]}>
-        <boxGeometry args={[0.82, 2.75, 0.64]} />
-        <meshStandardMaterial color="#263238" metalness={0.88} roughness={0.2} />
-      </mesh>
-      <mesh position={[0, 0.05, 0.34]}>
-        <boxGeometry args={[0.58, 2.46, 0.035]} />
-        <meshStandardMaterial color="#7e9b91" emissive="#35574d" emissiveIntensity={0.32} metalness={0.5} roughness={0.22} />
-      </mesh>
-      <mesh position={[-0.82, 0.25, 0.02]} rotation={[0.02, -0.34, -0.16]}>
-        <boxGeometry args={[1.42, 2.08, 0.08]} />
-        <meshStandardMaterial color="#172328" metalness={0.86} roughness={0.2} />
-      </mesh>
-      <mesh position={[0.82, 0.25, 0.02]} rotation={[-0.02, 0.34, 0.16]}>
-        <boxGeometry args={[1.42, 2.08, 0.08]} />
-        <meshStandardMaterial color="#172328" metalness={0.86} roughness={0.2} />
-      </mesh>
-      <mesh position={[0, 0.05, 0.4]} rotation={[Math.PI / 2, 0.1, 0]}>
-        <torusGeometry args={[1.72, 0.035, 12, 96]} />
-        <meshStandardMaterial color="#e2c783" emissive="#b68b3d" emissiveIntensity={0.4} metalness={0.8} roughness={0.18} />
-      </mesh>
+    <group ref={modelRef}>
+      <primitive object={scene} />
     </group>
   )
 }
+
+useGLTF.preload(heroModelPath)
 
 function SolarModel() {
   return (
@@ -209,7 +206,11 @@ function EnergyScene({ progress }: { progress: number }) {
   return (
     <group ref={groupRef}>
       <Float speed={1.2} rotationIntensity={0.08} floatIntensity={0.18}>
-        {sceneIndex === 0 && <IntroModel />}
+        {sceneIndex === 0 && (
+          <Suspense fallback={null}>
+            <IntroModel />
+          </Suspense>
+        )}
         {sceneIndex === 1 && <SolarModel />}
         {sceneIndex === 2 && <GenerationModel />}
         {sceneIndex === 3 && <DataModel />}
