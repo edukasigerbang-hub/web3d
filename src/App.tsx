@@ -195,11 +195,12 @@ function EnergyScene({ progress }: { progress: number }) {
     const boundaryProgress = Math.min(sceneProgress, 1 - sceneProgress) * 2
     const transitionZoom = 1 - easeInOut(boundaryProgress)
     const isCompactViewport = state.size.width < 700
-    const stageOffset = isCompactViewport ? 0.55 : 1.15
-    state.camera.position.x = 4.2 + transitionZoom * 0.8
+    const stageOffset = isCompactViewport ? 0.72 : 2.25
+    const cameraTarget = isCompactViewport ? 0.2 : 0.75
+    state.camera.position.x = 4.8 + transitionZoom * 0.8
     state.camera.position.y = 3.1 + transitionZoom * 0.45
     state.camera.position.z = 6.4 + transitionZoom * 2.2
-    state.camera.lookAt(stageOffset, 0, 0)
+    state.camera.lookAt(cameraTarget, 0, 0)
     groupRef.current.rotation.y = sceneIndex * 0.42 + easeInOut(sceneProgress) * 0.16 + t * 0.08
     groupRef.current.rotation.x = -0.08 + Math.sin(t * 0.45) * 0.025
     groupRef.current.position.y = Math.sin(t * 0.7) * 0.035
